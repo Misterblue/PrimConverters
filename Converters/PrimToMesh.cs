@@ -33,7 +33,10 @@ namespace org.herbal3d.tools.Converters
     public class PrimToMesh
     {
 
+        OMVR.MeshmerizerR m_mesher;
+
         public PrimToMesh() {
+            m_mesher = new OMVR.MeshmerizerR();
         }
 
         /// <summary>
@@ -68,7 +71,8 @@ namespace org.herbal3d.tools.Converters
         }
 
         private OMVR.FacetedMesh MeshFromPrimShapeData(OMV.Primitive prim, OMVR.DetailLevel lod) {
-            return null;
+            OMVR.FacetedMesh mesh = m_mesher.GenerateFacetedMesh(prim, lod);
+            return mesh;
         }
 
         private OMVR.FacetedMesh MeshFromPrimSculptData(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {

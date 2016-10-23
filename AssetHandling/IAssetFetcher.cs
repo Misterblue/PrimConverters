@@ -1,4 +1,4 @@
-﻿/* ==============================================================================
+/* ==============================================================================
 Copyright (c) 2016 Robert Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,10 +28,8 @@ using org.herbal3d.tools.SimplePromise;
 
 namespace org.herbal3d.tools.AssetHandling
 {
-    public class IAssetFetcher
+    public abstract class IAssetFetcher
     {
-        public SimplePromise<Bitmap> FetchTexture(EntityHandle handle) {
-            return null;
-        }
+        public abstract SimplePromise<Bitmap> FetchTexture(EntityHandle handle);
     }
 }
