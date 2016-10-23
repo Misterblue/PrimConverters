@@ -22,8 +22,8 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
-using ParameterParsing;
-using Logging;
+using org.herbal3d.tools.ParameterParsing;
+using org.herbal3d.tools.Logging;
 
 namespace org.herbal3d.PrimConverters {
     class PrimConverters {
@@ -34,6 +34,8 @@ namespace org.herbal3d.PrimConverters {
         string m_inFile;
         string m_outFile;
         string m_op;
+
+        Logger m_log;
 
         private bool IsVerbose { get { return m_ParamVerbose > 0; } }
         private bool IsVeryVerbose { get { return m_ParamVerbose > 1; } }
@@ -57,6 +59,7 @@ PrimConverters op
         }
 
         public PrimConverters() {
+            m_log = new Logger();
         }
 
         public void Start(string[] args) {
@@ -79,22 +82,25 @@ PrimConverters op
                         break;
                     case ParameterParse.ERROR_PARAM:
                         // if we get here, the parser found an error
-                        Logger.Log("Parameter error: " + kvp.Value);
-                        Logger.Log(Invocation());
+                        m_log.Error("Parameter error: " + kvp.Value);
+                        m_log.Error(Invocation());
                         return;
                     default:
-                        Logger.Log("ERROR: UNKNOWN PARAMETER: " + kvp.Key);
-                        Logger.Log(Invocation());
+                        m_log.Error("ERROR: UNKNOWN PARAMETER: " + kvp.Key);
+                        m_log.Error(Invocation());
                         return;
                 }
             }
 
             // Verify parameters
             if (String.IsNullOrEmpty(m_op)) {
-                Logger.Log("ERROR: An operation must be specified");
-                Logger.Log(Invocation());
+                m_log.Error("ERROR: An operation must be specified");
+                m_log.Error(Invocation());
                 return;
             }
+            m_log.LogLevel = Logger.LOGLEVEL.NONE;
+            if (m_ParamVerbose >= 1) m_log.LogLevel = Logger.LOGLEVEL.INFO;
+            if (m_ParamVerbose >= 2) m_log.LogLevel = Logger.LOGLEVEL.DEBUG;
 
             // Do the requested conversion
 

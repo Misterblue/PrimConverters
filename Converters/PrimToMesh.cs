@@ -1,4 +1,4 @@
-﻿/* ==============================================================================
+/* ==============================================================================
 Copyright (c) 2016 Robert Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,14 +21,62 @@ SOFTWARE.
 ================================================================================ */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace org.herbal3d.Converters
+using org.herbal3d.tools.SimplePromise;
+using org.herbal3d.tools.AssetHandling;
+
+using OMV = OpenMetaverse;
+using OMVR = OpenMetaverse.Rendering;
+
+namespace org.herbal3d.tools.Converters
 {
     public class PrimToMesh
     {
+
+        public PrimToMesh() {
+        }
+
+        /// <summary>
+        /// Create and return a faceted mesh.
+        /// </summary>
+        public SimplePromise<OMVR.FacetedMesh> CreateMeshResource(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {
+
+            SimplePromise<OMVR.FacetedMesh> prom = new SimplePromise<OMVR.FacetedMesh>();
+
+            OMVR.FacetedMesh mesh;
+            try {
+                if (prim.Sculpt != null) {
+                    if (prim.Sculpt.Type == OMV.SculptType.Mesh) {
+                        mesh = MeshFromPrimMeshData(prim, assetFetcher, lod);
+                        prom.Resolve(mesh);
+                    }
+                    else {
+                        mesh = MeshFromPrimSculptData(prim, assetFetcher, lod);
+                        prom.Resolve(mesh);
+                    }
+                }
+                else {
+                    mesh = MeshFromPrimShapeData(prim, lod);
+                    prom.Resolve(mesh);
+                }
+            }
+            catch (Exception e) {
+                prom.Reject(e);
+            }
+
+            return prom;
+        }
+
+        private OMVR.FacetedMesh MeshFromPrimShapeData(OMV.Primitive prim, OMVR.DetailLevel lod) {
+            return null;
+        }
+
+        private OMVR.FacetedMesh MeshFromPrimSculptData(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {
+            return null;
+        }
+
+        private OMVR.FacetedMesh MeshFromPrimMeshData(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {
+            return null;
+        }
     }
 }

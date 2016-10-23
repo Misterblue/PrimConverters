@@ -1,4 +1,4 @@
-﻿/* ==============================================================================
+/* ==============================================================================
 Copyright (c) 2016 Robert Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,12 +22,75 @@ SOFTWARE.
 
 using System;
 
-namespace Logging {
+namespace org.herbal3d.tools.Logging {
 
-public static class Logger {
+    public class Logger : IDisposable {
 
-    public static void Log(string msg, params Object[] args) {
-        System.Console.WriteLine(msg, args);
+        public enum LOGLEVEL {
+            NONE, ERROR, INFO, DEBUG
+        };
+
+        public LOGLEVEL LogLevel { get; set; }
+
+
+        public Logger() {
+            LogLevel = LOGLEVEL.INFO;
+        }
+    
+        public Logger(LOGLEVEL logl) {
+            LogLevel = logl;
+        }
+
+        public void Info(string msg, params Object[] args) {
+            if (LogLevel == LOGLEVEL.INFO || LogLevel == LOGLEVEL.DEBUG) {
+                OutTheLine(msg, args);
+            }
+        }
+
+        public void Debug(string msg, params Object[] args) {
+            if (LogLevel == LOGLEVEL.DEBUG) {
+                OutTheLine(msg, args);
+            }
+        }
+
+        public void Error(string msg, params Object[] args) {
+            OutTheLine(msg, args);
+        }
+
+        private void OutTheLine(string msg, params Object[] args) {
+            System.Console.WriteLine(msg, args);
+        }
+
+        // For the day this does more than just write to the console.
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing) {
+            if (!disposedValue) {
+                if (disposing) {
+                    // TODO: dispose managed state (managed objects).
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~Logger() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose() {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
-}
 }

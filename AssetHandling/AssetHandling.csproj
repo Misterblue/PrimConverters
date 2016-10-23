@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{43853F2F-E584-4A95-BFA1-7850BD07D701}</ProjectGuid>
+    <ProjectGuid>{ACC31658-4DC8-4628-87D2-02B5841E1254}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Converters</RootNamespace>
-    <AssemblyName>Converters</AssemblyName>
+    <RootNamespace>AssetHandling</RootNamespace>
+    <AssemblyName>AssetHandling</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,34 +30,19 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenMetaverse">
-      <HintPath>..\..\libopenmetaverse\bin\OpenMetaverse.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenMetaverse.Rendering.Meshmerizer">
-      <HintPath>..\..\libopenmetaverse\bin\OpenMetaverse.Rendering.Meshmerizer.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenMetaverseTypes">
-      <HintPath>..\..\libopenmetaverse\bin\OpenMetaverseTypes.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PrimToMesh.cs" />
-    <Compile Include="PrimMesher.cs" />
+    <Compile Include="EntityHandle.cs" />
+    <Compile Include="IAssetFetcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AssetHandling\AssetHandling.csproj">
-      <Project>{acc31658-4dc8-4628-87d2-02b5841e1254}</Project>
-      <Name>AssetHandling</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Logging\Logging.csproj">
       <Project>{7763b366-6ac4-4b4e-822b-79d6e77b1897}</Project>
       <Name>Logging</Name>

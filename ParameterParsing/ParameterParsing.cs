@@ -26,7 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ParameterParsing
+namespace org.herbal3d.tools.ParameterParsing
 {
 public static class ParameterParse
 {
