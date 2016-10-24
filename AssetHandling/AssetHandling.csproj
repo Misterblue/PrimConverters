@@ -44,6 +44,7 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssetUtil.cs" />
     <Compile Include="EntityHandle.cs" />
     <Compile Include="IAssetFetcher.cs" />
     <Compile Include="OarFileAssets.cs" />
