@@ -30,6 +30,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\libopenmetaverse\bin\OpenMetaverse.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\libopenmetaverse\bin\OpenMetaverseTypes.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -40,6 +46,7 @@
   <ItemGroup>
     <Compile Include="EntityHandle.cs" />
     <Compile Include="IAssetFetcher.cs" />
+    <Compile Include="OarFileAssets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

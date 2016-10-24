@@ -1,4 +1,4 @@
-/* ==============================================================================
+﻿/* ==============================================================================
 Copyright (c) 2016 Robert Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,21 +26,23 @@ namespace org.herbal3d.tools.Logging {
 
     public class Logger : IDisposable {
 
+        private static Logger m_instance = null;
+        public static Logger Instance() {
+            if (m_instance == null) {
+                m_instance = new Logger();
+            }
+            return m_instance;
+        }
+
+        public LOGLEVEL LogLevel { get; set; }
+
         public enum LOGLEVEL {
             NONE, ERROR, INFO, DEBUG
         };
 
-        public LOGLEVEL LogLevel { get; set; }
-
-
         public Logger() {
-            LogLevel = LOGLEVEL.INFO;
         }
     
-        public Logger(LOGLEVEL logl) {
-            LogLevel = logl;
-        }
-
         public void Info(string msg, params Object[] args) {
             if (LogLevel == LOGLEVEL.INFO || LogLevel == LOGLEVEL.DEBUG) {
                 OutTheLine(msg, args);

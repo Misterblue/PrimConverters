@@ -22,14 +22,23 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using OMV = OpenMetaverse;
 
 namespace org.herbal3d.tools.AssetHandling
 {
     // Class for collecting all me mess around asset names.
     // All filename, type, and version conversions are done here.
     public class EntityHandle {
+
+        OMV.UUID m_uuid;
+
+        public EntityHandle(OMV.UUID id) {
+            m_uuid = id;
+        }
+
+        public override string ToString() {
+            return m_uuid.ToString();
+        }
     }
 }

@@ -21,9 +21,11 @@ SOFTWARE.
 ================================================================================ */
 
 using System;
+using System.Drawing;
 
 using org.herbal3d.tools.SimplePromise;
 using org.herbal3d.tools.AssetHandling;
+using org.herbal3d.tools.Logging;
 
 using OMV = OpenMetaverse;
 using OMVR = OpenMetaverse.Rendering;
@@ -34,9 +36,12 @@ namespace org.herbal3d.tools.Converters
     {
 
         OMVR.MeshmerizerR m_mesher;
+        Logger m_log;
+        String m_logHeader = "PrimToMesh:";
 
         public PrimToMesh() {
             m_mesher = new OMVR.MeshmerizerR();
+            m_log = Logger.Instance();
         }
 
         /// <summary>
@@ -76,7 +81,21 @@ namespace org.herbal3d.tools.Converters
         }
 
         private OMVR.FacetedMesh MeshFromPrimSculptData(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {
-            return null;
+            OMVR.FacetedMesh ret = null;
+
+            // Get the asset that the sculpty is built on
+            EntityHandle texHandle = new EntityHandle(prim.Sculpt.SculptTexture);
+            assetFetcher.FetchTexture(texHandle)
+                .Then((bm) => {
+                    ret = m_mesher.GenerateFacetedSculptMesh(prim, bm, lod);
+                })
+                .Rejected((e) => {
+                    m_log.Error("{0} MeshFromPrimSculptData: Rejected FetchTexture: {1}: {2}", m_logHeader, texHandle, e);
+                    ret = null;
+                    throw e;
+                });
+
+            return ret;
         }
 
         private OMVR.FacetedMesh MeshFromPrimMeshData(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {

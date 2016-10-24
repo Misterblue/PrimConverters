@@ -1,4 +1,4 @@
-/* ==============================================================================
+﻿/* ==============================================================================
 Copyright (c) 2016 Robert Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -72,12 +72,14 @@ namespace org.herbal3d.tools.SimplePromise
             }
         }
 
-        public void Then(Action<T> resolve) {
+        public SimplePromise<T> Then(Action<T> resolve) {
             resolver = resolve;
+            return this;
         }
 
-        public void Rejected(Action<Exception> reject) {
+        public SimplePromise<T> Rejected(Action<Exception> reject) {
             rejecter = reject;
+            return this;
         }
 
     }
