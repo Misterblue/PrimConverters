@@ -1,4 +1,4 @@
-/* ==============================================================================
+﻿/* ==============================================================================
 Copyright (c) 2016 Robert Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,12 +24,15 @@ using System;
 using System.Drawing;
 using System.Collections.Generic;
 
+using OMV = OpenMetaverse;
+
 using org.herbal3d.tools.SimplePromise;
 
 namespace org.herbal3d.tools.AssetHandling
 {
     public abstract class IAssetFetcher
     {
-        public abstract SimplePromise<Bitmap> FetchTexture(EntityHandle handle);
+        public abstract SimplePromise<OMV.Assets.AssetTexture> FetchTexture(EntityHandle handle);
+        public abstract SimplePromise<OMV.Assets.AssetMesh> FetchMesh(EntityHandle handle);
     }
 }

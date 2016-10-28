@@ -22,32 +22,29 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+
 using org.herbal3d.tools.ParameterParsing;
 using org.herbal3d.tools.Logging;
+using org.herbal3d.tools.Converters;
 
-namespace org.herbal3d.PrimConverters {
+namespace org.herbal3d.tools.PrimConverters {
     class PrimConverters {
 
         Dictionary<string, string> m_Parameters;
         int m_ParamVerbose = 0;
 
-        string m_inFile;
-        string m_outFile;
-        string m_op;
+        public const string pOp = "--op";
+        public const string pInFile = "--input";
+        public const string pOutFile = "--output";
+        public const string pAssetDir = "--assetdir";
 
         Logger m_log;
-
-        private bool IsVerbose { get { return m_ParamVerbose > 0; } }
-        private bool IsVeryVerbose { get { return m_ParamVerbose > 1; } }
 
         private string Invocation() {
             return @"Invocation:
 INVOCATION:
-PrimConverters op
-        -i|--input inputFilename
-        -o|--output outputFilename
-        --verbose
-
+PrimConverters op opParameters
         where 'op' must be one of:
 ";
         }
@@ -63,20 +60,14 @@ PrimConverters op
         }
 
         public void Start(string[] args) {
-            m_Parameters = ParameterParse.ParseArguments(args, false /* firstOpFlag */, true /* multipleFiles */);
+            m_Parameters = ParameterParse.ParseArguments(args, true /* firstOpFlag */, false /* multipleFiles */);
             foreach (KeyValuePair<string, string> kvp in m_Parameters) {
-                switch (kvp.Key) {
+                string key = kvp.Key.ToLower();
+                switch (key) {
                     case ParameterParse.FIRST_PARAM:
-                        m_op = kvp.Value.ToLower();
+                        Globals.Params[pOp]= kvp.Value.ToLower();
                         break;
-                    case "-i":
-                    case "--input":
-                        m_inFile = kvp.Value;
-                        break;
-                    case "-o":
-                    case "--output":
-                        m_outFile = kvp.Value;
-                        break;
+                    case "-v":
                     case "--verbose":
                         m_ParamVerbose++;
                         break;
@@ -86,14 +77,15 @@ PrimConverters op
                         m_log.Error(Invocation());
                         return;
                     default:
-                        m_log.Error("ERROR: UNKNOWN PARAMETER: " + kvp.Key);
-                        m_log.Error(Invocation());
+                        if (key.Equals("-i")) key = pInFile;
+                        if (key.Equals("-o")) key = pOutFile;
+                        Globals.Params[key] = kvp.Value;
                         return;
                 }
             }
 
             // Verify parameters
-            if (String.IsNullOrEmpty(m_op)) {
+            if (!Globals.Params.ContainsKey(pOp)) {
                 m_log.Error("ERROR: An operation must be specified");
                 m_log.Error(Invocation());
                 return;
@@ -103,7 +95,61 @@ PrimConverters op
             if (m_ParamVerbose >= 2) m_log.LogLevel = Logger.LOGLEVEL.DEBUG;
 
             // Do the requested conversion
+            switch (Globals.Params[pOp]) {
+                case "tomesh":
+                    DoToMesh();
+                    break;
+                default:
+                    break;
+            }
+        }
 
+        // Read a OAR extracted file and output a mesh.
+        // Parameters are the input file and the output file.
+        private void DoToMesh() {
+            string inFile;
+            string outFile;
+            string assetDir;
+            if (!Globals.Params.TryGetValue(pInFile, out inFile) {
+                m_log.Error("ERROR: An input file must be specified");
+                m_log.Error(ToMeshInvocation());
+                return;
+            }
+
+            if (!Globals.Params.TryGetValue(pOutFile, out outFile) {
+                m_log.Error("ERROR: An output file must be specified");
+                m_log.Error(ToMeshInvocation());
+                return;
+            }
+
+            if (!Globals.Params.TryGetValue(pAssetDir, out assetDir) {
+                m_log.Error("ERROR: An asset directory must be specified");
+                m_log.Error(ToMeshInvocation());
+                return;
+            }
+
+            try {
+                using (Stream inFileFile = new FileStream(inFile, FileMode.Open, FileAccess.Read)) {
+                    using (Stream outFileFile = new FileStream(outFile, FileMode.Create, FileAccess.Write)) {
+                        Converters.Converters.DoToMesh(inFileFile, outFileFile, assetDir);
+                    }
+                }
+            }
+            catch (Exception e) {
+                m_log.Error("ERROR: Could not use input/output files: " + e);
+            }
+
+        }
+
+        private string ToMeshInvocation() {
+            return @"ToMesh converts an OAR extracted object definition into a mesh file
+INVOCATION:
+PrimConverters ToMesh
+        -i|--input inputFilename
+        -o|--output outputFilename
+        -v|--verbose
+        }
+";
         }
     }
 }

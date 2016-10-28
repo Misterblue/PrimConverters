@@ -21,32 +21,12 @@ SOFTWARE.
 ================================================================================ */
 
 using System;
-using System.Drawing;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-using OMV = OpenMetaverse;
-
-using org.herbal3d.tools.SimplePromise;
-
-namespace org.herbal3d.tools.AssetHandling {
-    public class OarFileAssets : IAssetFetcher {
-
-        private string assetDir;
-
-        public OarFileAssets(string assetDir) {
-        }
-
-        public override SimplePromise<OMV.Assets.AssetTexture> FetchTexture(EntityHandle handle) {
-
-            SimplePromise<OMV.Assets.AssetTexture> prom = new SimplePromise<OMV.Assets.AssetTexture>();
-
-            return prom;
-        }
-
-        public override SimplePromise<OMV.Assets.AssetMesh> FetchMesh(EntityHandle handle) {
-
-            SimplePromise<OMV.Assets.AssetMesh> prom = new SimplePromise<OMV.Assets.AssetMesh>();
-
-            return prom;
-        }
+namespace org.herbal3d.tools.Converters {
+    public static class PrimIO {
     }
 }

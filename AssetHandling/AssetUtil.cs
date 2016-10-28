@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using OMV = OpenMetaverse;
 using OMVR = OpenMetaverse.Rendering;
 
-namespace AssetHandling {
+namespace org.herbal3d.tools.AssetHandling {
 
     class AssetUtil {
 

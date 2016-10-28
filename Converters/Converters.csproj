@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Converters.cs" />
+    <Compile Include="PrimIO.cs" />
     <Compile Include="PrimToMesh.cs" />
     <Compile Include="PrimMesher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -21,32 +21,29 @@ SOFTWARE.
 ================================================================================ */
 
 using System;
-using System.Drawing;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-using OMV = OpenMetaverse;
+namespace org.herbal3d.tools.Converters {
+    public static class Converters {
 
-using org.herbal3d.tools.SimplePromise;
+        public static void DoToMesh(Stream inFile, Stream outFile, string assetDir) {
+            
 
-namespace org.herbal3d.tools.AssetHandling {
-    public class OarFileAssets : IAssetFetcher {
 
-        private string assetDir;
 
-        public OarFileAssets(string assetDir) {
-        }
+            // Read in the blob that is the object definition
+            // Parse and convert the XML
+            // Convert the object definition into a mesh
+            
+            
 
-        public override SimplePromise<OMV.Assets.AssetTexture> FetchTexture(EntityHandle handle) {
 
-            SimplePromise<OMV.Assets.AssetTexture> prom = new SimplePromise<OMV.Assets.AssetTexture>();
 
-            return prom;
-        }
 
-        public override SimplePromise<OMV.Assets.AssetMesh> FetchMesh(EntityHandle handle) {
-
-            SimplePromise<OMV.Assets.AssetMesh> prom = new SimplePromise<OMV.Assets.AssetMesh>();
-
-            return prom;
         }
     }
 }
