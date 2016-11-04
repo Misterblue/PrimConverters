@@ -30,9 +30,10 @@ using org.herbal3d.tools.SimplePromise;
 
 namespace org.herbal3d.tools.AssetHandling
 {
-    public abstract class IAssetFetcher
+    public abstract class IAssetFetcher : IDisposable
     {
         public abstract SimplePromise<OMV.Assets.AssetTexture> FetchTexture(EntityHandle handle);
         public abstract SimplePromise<OMV.Assets.AssetMesh> FetchMesh(EntityHandle handle);
+        public abstract void Dispose();
     }
 }

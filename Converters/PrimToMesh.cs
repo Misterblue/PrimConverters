@@ -34,7 +34,6 @@ namespace org.herbal3d.tools.Converters
 {
     public class PrimToMesh
     {
-
         OMVR.MeshmerizerR m_mesher;
         Logger m_log;
         String m_logHeader = "PrimToMesh:";
@@ -87,7 +86,7 @@ namespace org.herbal3d.tools.Converters
             EntityHandle texHandle = new EntityHandle(prim.Sculpt.SculptTexture);
             assetFetcher.FetchTexture(texHandle)
                 .Then((bm) => {
-                    ret = m_mesher.GenerateFacetedSculptMesh(prim, bm, lod);
+                    ret = m_mesher.GenerateFacetedSculptMesh(prim, bm.Image.ExportBitmap(), lod);
                 })
                 .Rejected((e) => {
                     m_log.Error("{0} MeshFromPrimSculptData: Rejected FetchTexture: {1}: {2}", m_logHeader, texHandle, e);

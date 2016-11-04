@@ -22,28 +22,120 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
+using org.herbal3d.tools.Logging;
+using org.herbal3d.tools.PrimConverters;
+using org.herbal3d.tools.AssetHandling;
+using org.herbal3d.tools.SimplePromise;
+
+using OMV = OpenMetaverse;
+using OMVA = OpenMetaverse.Assets;
+using OMVR = OpenMetaverse.Rendering;
 
 namespace org.herbal3d.tools.Converters {
+    public class ExtendedPrim {
+        public OMVA.PrimObject primObject;
+        public OMV.Primitive primitive;
+        public OMVR.FacetedMesh facetedMesh;
+    }
+
     public static class Converters {
 
+        static Logger m_log = Logger.Instance();
+
         public static void DoToMesh(Stream inFile, Stream outFile, string assetDir) {
-            
+            String xmlString;
 
+            // Flag saying to merge linksets into a single mesh
+            bool shouldMerge = Globals.Params.ContainsKey("--merge");
 
+            using (StreamReader inn = new StreamReader(inFile, Encoding.UTF8)) {
+                xmlString = inn.ReadToEnd();
+            }
 
-            // Read in the blob that is the object definition
             // Parse and convert the XML
+            OMVA.AssetPrim primAsset = new OMVA.AssetPrim(xmlString);
+
+            PrimToMesh assetMesher = new PrimToMesh();
+
             // Convert the object definition into a mesh
+
+            CreateAllMeshesInSOP(primAsset, assetMesher, assetDir)
+                .Then(extendedAssetList => {
+                    
+                })
+                .Rejected(e => {
+                    m_log.Error("Failed mesh extraction: " + e);
+                });
+        }
+
+        // Fetch all the meshes for this SceneObjectGroup.
+        // The problem is that the different pieces may take different times to fetch (get the assets)
+        private static SimplePromise<List<ExtendedPrim>> CreateAllMeshesInSOP(OMVA.AssetPrim primAsset, PrimToMesh assetMesher, string assetDir) {
+            SimplePromise<List<ExtendedPrim>> prom = new SimplePromise<List<ExtendedPrim>>();
+
+            List<ExtendedPrim> meshes = new List<ExtendedPrim>();
+
+            using (IAssetFetcher assetFetcher = new OarFileAssets(assetDir)) {
+
+                // fetch the mesh for the root and the children
+                int totalChildren = primAsset.Children.Count;
+                foreach (OMVA.PrimObject onePrimObject in primAsset.Children) {
+                    m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}", onePrimObject.ID);
+                    OMV.Primitive aPrim = onePrimObject.ToPrimitive();
+                    assetMesher.CreateMeshResource(aPrim, assetFetcher, OMVR.DetailLevel.Highest)
+                        .Then(facetedMesh => {
+                            lock (meshes) {
+                                m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}, primAsset={1}, fmesh={2}",
+                                                        onePrimObject.ID, aPrim.ID, facetedMesh.Faces.Count);
+                                ExtendedPrim ePrim = new ExtendedPrim();
+                                ePrim.primitive = aPrim;
+                                ePrim.primObject = onePrimObject;
+                                ePrim.facetedMesh = facetedMesh;
+                                meshes.Add(ePrim);
+                            }
+                            if (--totalChildren <= 0) {
+                                prom.Resolve(meshes);
+                            }
+                        })
+                        .Rejected(e => {
+                            prom.Reject(e);
+                        });
+                }
+            }
+            return prom;
             
-            
+        }
 
+        public static void DoToPNG(Stream inFile, Stream outFile) {
+            // Read the input file into a byte array
+            MemoryStream ms = new MemoryStream();
+            inFile.CopyTo(ms);
 
-
-
+            // Convert from JPEG2000 to an image
+            // System.Drawing.Image tempImage = CSJ2K.J2kImage.FromBytes(ms.ToArray());
+            System.Drawing.Image tempImage = CSJ2K.J2kImage.FromBytes(ms.ToArray());
+            try {
+                using (Bitmap textureBitmap = new Bitmap(tempImage.Width, tempImage.Height,
+                            System.Drawing.Imaging.PixelFormat.Format32bppArgb)) {
+                    // convert the raw image into a channeled image
+                    using (Graphics graphics = Graphics.FromImage(textureBitmap)) {
+                        graphics.DrawImage(tempImage, 0, 0);
+                        graphics.Flush();
+                    }
+                    // Write out the converted image as PNG
+                    textureBitmap.Save(outFile, System.Drawing.Imaging.ImageFormat.Png);
+                    outFile.Flush();
+                    outFile.Close();
+                }
+            }
+            catch (Exception e) {
+                m_log.Error("FAILED PNG FILE CREATION: {0}", e);
+                throw e;
+            }
         }
     }
 }

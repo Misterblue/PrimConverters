@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrimConverters", "PrimConverters\PrimConverters.csproj", "{05CEC6AA-1858-4E6F-848A-F31D576C40AE}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePromise", "SimplePromise\SimplePromise.csproj", "{4434B5D0-27C1-4357-BC52-F5AC3854F9BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetHandling", "AssetHandling\AssetHandling.csproj", "{ACC31658-4DC8-4628-87D2-02B5841E1254}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Globals", "Globals\Globals.csproj", "{BB03905B-AA47-4B86-8770-2C5FCDF420A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{ACC31658-4DC8-4628-87D2-02B5841E1254}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ACC31658-4DC8-4628-87D2-02B5841E1254}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ACC31658-4DC8-4628-87D2-02B5841E1254}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB03905B-AA47-4B86-8770-2C5FCDF420A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB03905B-AA47-4B86-8770-2C5FCDF420A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB03905B-AA47-4B86-8770-2C5FCDF420A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB03905B-AA47-4B86-8770-2C5FCDF420A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -32,7 +32,6 @@ namespace org.herbal3d.tools.PrimConverters {
     class PrimConverters {
 
         Dictionary<string, string> m_Parameters;
-        int m_ParamVerbose = 0;
 
         public const string pOp = "--op";
         public const string pInFile = "--input";
@@ -43,7 +42,6 @@ namespace org.herbal3d.tools.PrimConverters {
 
         private string Invocation() {
             return @"Invocation:
-INVOCATION:
 PrimConverters op opParameters
         where 'op' must be one of:
 ";
@@ -57,19 +55,23 @@ PrimConverters op opParameters
 
         public PrimConverters() {
             m_log = Logger.Instance();
+            m_log.LogLevel = Logger.LOGLEVEL.NONE;
         }
 
         public void Start(string[] args) {
             m_Parameters = ParameterParse.ParseArguments(args, true /* firstOpFlag */, false /* multipleFiles */);
             foreach (KeyValuePair<string, string> kvp in m_Parameters) {
                 string key = kvp.Key.ToLower();
-                switch (key) {
+                switch (kvp.Key) {
                     case ParameterParse.FIRST_PARAM:
                         Globals.Params[pOp]= kvp.Value.ToLower();
                         break;
                     case "-v":
                     case "--verbose":
-                        m_ParamVerbose++;
+                        m_log.LogLevel = Logger.LOGLEVEL.INFO;
+                        break;
+                    case "--debug":
+                        m_log.LogLevel = Logger.LOGLEVEL.DEBUG;
                         break;
                     case ParameterParse.ERROR_PARAM:
                         // if we get here, the parser found an error
@@ -80,7 +82,7 @@ PrimConverters op opParameters
                         if (key.Equals("-i")) key = pInFile;
                         if (key.Equals("-o")) key = pOutFile;
                         Globals.Params[key] = kvp.Value;
-                        return;
+                        break;
                 }
             }
 
@@ -90,14 +92,14 @@ PrimConverters op opParameters
                 m_log.Error(Invocation());
                 return;
             }
-            m_log.LogLevel = Logger.LOGLEVEL.NONE;
-            if (m_ParamVerbose >= 1) m_log.LogLevel = Logger.LOGLEVEL.INFO;
-            if (m_ParamVerbose >= 2) m_log.LogLevel = Logger.LOGLEVEL.DEBUG;
 
             // Do the requested conversion
             switch (Globals.Params[pOp]) {
                 case "tomesh":
                     DoToMesh();
+                    break;
+                case "topng":
+                    DoToPNG();
                     break;
                 default:
                     break;
@@ -110,35 +112,34 @@ PrimConverters op opParameters
             string inFile;
             string outFile;
             string assetDir;
-            if (!Globals.Params.TryGetValue(pInFile, out inFile) {
+            if (!Globals.Params.TryGetValue(pInFile, out inFile)) {
                 m_log.Error("ERROR: An input file must be specified");
                 m_log.Error(ToMeshInvocation());
                 return;
             }
 
-            if (!Globals.Params.TryGetValue(pOutFile, out outFile) {
+            if (!Globals.Params.TryGetValue(pOutFile, out outFile)) {
                 m_log.Error("ERROR: An output file must be specified");
                 m_log.Error(ToMeshInvocation());
                 return;
             }
 
-            if (!Globals.Params.TryGetValue(pAssetDir, out assetDir) {
+            if (!Globals.Params.TryGetValue(pAssetDir, out assetDir)) {
                 m_log.Error("ERROR: An asset directory must be specified");
                 m_log.Error(ToMeshInvocation());
                 return;
             }
 
             try {
-                using (Stream inFileFile = new FileStream(inFile, FileMode.Open, FileAccess.Read)) {
-                    using (Stream outFileFile = new FileStream(outFile, FileMode.Create, FileAccess.Write)) {
-                        Converters.Converters.DoToMesh(inFileFile, outFileFile, assetDir);
+                using (Stream inFileStream = new FileStream(inFile, FileMode.Open, FileAccess.Read)) {
+                    using (Stream outFileStream = new FileStream(outFile, FileMode.Create, FileAccess.Write)) {
+                        Converters.Converters.DoToMesh(inFileStream, outFileStream, assetDir);
                     }
                 }
             }
             catch (Exception e) {
                 m_log.Error("ERROR: Could not use input/output files: " + e);
             }
-
         }
 
         private string ToMeshInvocation() {
@@ -147,8 +148,49 @@ INVOCATION:
 PrimConverters ToMesh
         -i|--input inputFilename
         -o|--output outputFilename
+        --format {RAW|OBJ} (default 'RAW')
         -v|--verbose
+";
         }
+
+        // Read a JPEG2000 texture file and output a PNG formatted version
+        // Parameters are the input file and the output file.
+        private void DoToPNG() {
+            string inFile;
+            string outFile;
+
+            if (!Globals.Params.TryGetValue(pInFile, out inFile)) {
+                m_log.Error("ERROR: An input file must be specified");
+                m_log.Error(ToPNGInvocation());
+                return;
+            }
+
+            if (!Globals.Params.TryGetValue(pOutFile, out outFile)) {
+                m_log.Error("ERROR: An output file must be specified");
+                m_log.Error(ToPNGInvocation());
+                return;
+            }
+
+            m_log.Debug("ToPNG: infile={0}, outfile={1}", inFile, outFile);
+            try {
+                using (Stream inFileStream = new FileStream(inFile, FileMode.Open, FileAccess.Read)) {
+                    using (Stream outFileStream = new FileStream(outFile, FileMode.Create, FileAccess.Write)) {
+                        Converters.Converters.DoToPNG(inFileStream, outFileStream);
+                    }
+                }
+            }
+            catch (Exception e) {
+                m_log.Error("ERROR: Could not use input/output files: " + e);
+            }
+        }
+
+        private string ToPNGInvocation() {
+            return @"ToPNG converts a JPGG2000 texture into a PNG formatted file
+INVOCATION:
+PrimConverters ToPNG
+        -i|--input inputFilename
+        -o|--output outputFilename
+        -v|--verbose
 ";
         }
     }

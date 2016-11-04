@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CSJ2K">
+      <HintPath>..\..\libopenmetaverse\bin\CSJ2K.dll</HintPath>
+    </Reference>
     <Reference Include="OpenMetaverse">
       <HintPath>..\..\libopenmetaverse\bin\OpenMetaverse.dll</HintPath>
     </Reference>
@@ -60,6 +63,10 @@
     <ProjectReference Include="..\AssetHandling\AssetHandling.csproj">
       <Project>{acc31658-4dc8-4628-87d2-02b5841e1254}</Project>
       <Name>AssetHandling</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Globals\Globals.csproj">
+      <Project>{bb03905b-aa47-4b86-8770-2c5fcdf420a3}</Project>
+      <Name>Globals</Name>
     </ProjectReference>
     <ProjectReference Include="..\Logging\Logging.csproj">
       <Project>{7763b366-6ac4-4b4e-822b-79d6e77b1897}</Project>

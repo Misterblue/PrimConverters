@@ -32,7 +32,8 @@ namespace org.herbal3d.tools.AssetHandling {
 
         private string assetDir;
 
-        public OarFileAssets(string assetDir) {
+        public OarFileAssets(string pAassetDir) {
+            assetDir = pAassetDir;
         }
 
         public override SimplePromise<OMV.Assets.AssetTexture> FetchTexture(EntityHandle handle) {
@@ -47,6 +48,10 @@ namespace org.herbal3d.tools.AssetHandling {
             SimplePromise<OMV.Assets.AssetMesh> prom = new SimplePromise<OMV.Assets.AssetMesh>();
 
             return prom;
+        }
+
+        public override void Dispose() {
+            // nothing to do
         }
     }
 }
