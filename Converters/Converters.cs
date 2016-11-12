@@ -35,6 +35,7 @@ using OMV = OpenMetaverse;
 using OMVA = OpenMetaverse.Assets;
 using OMVR = OpenMetaverse.Rendering;
 
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 
@@ -42,6 +43,7 @@ namespace org.herbal3d.tools.Converters {
     public class ExtendedPrim {
         public OMVA.PrimObject primObject;
         public OMV.Primitive primitive;
+        public SceneObjectPart SOP;
         public OMVR.FacetedMesh facetedMesh;
     }
 
@@ -126,17 +128,18 @@ namespace org.herbal3d.tools.Converters {
 
                 // fetch the mesh for the root and the children
                 int totalChildren = sog.Parts.GetLength(0);
-                foreach (SceneObjectPart onePrimObject in sog.Parts) {
-                    m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}", onePrimObject.UUID);
-                    OMV.Primitive aPrim = onePrimObject.Shape;
+                foreach (SceneObjectPart oneSOP in sog.Parts) {
+                    m_log.Debug("CreateAllMeshesInSOP: foreach oneSOP: {0}, parentID={1}, offsetPos={2}, relPos={3}",
+                                        oneSOP.UUID, oneSOP.ParentID, oneSOP.OffsetPosition, oneSOP.RelativePosition);
+                    OMV.Primitive aPrim = oneSOP.Shape.ToOmvPrimitive();
                     assetMesher.CreateMeshResource(aPrim, assetFetcher, OMVR.DetailLevel.Highest)
                         .Then(facetedMesh => {
                             lock (meshes) {
-                                m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}, primAsset={1}, fmesh={2}",
-                                                        onePrimObject.UUID, aPrim.ID, facetedMesh.Faces.Count);
+                                m_log.Debug("CreateAllMeshesInSOP: foreach oneSOP: {0}, primAsset={1}, fmesh={2}",
+                                                        oneSOP.UUID, aPrim.ID, facetedMesh.Faces.Count);
                                 ExtendedPrim ePrim = new ExtendedPrim();
                                 ePrim.primitive = aPrim;
-                                ePrim.primObject = onePrimObject;
+                                ePrim.SOP = oneSOP;
                                 ePrim.facetedMesh = facetedMesh;
                                 meshes.Add(ePrim);
                             }

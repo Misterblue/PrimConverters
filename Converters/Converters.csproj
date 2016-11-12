@@ -42,6 +42,9 @@
     <Reference Include="OpenMetaverseTypes">
       <HintPath>..\..\opensim-ssh\bin\OpenMetaverseTypes.dll</HintPath>
     </Reference>
+    <Reference Include="OpenSim.Framework">
+      <HintPath>..\..\opensim-ssh\bin\OpenSim.Framework.dll</HintPath>
+    </Reference>
     <Reference Include="OpenSim.Region.Framework">
       <HintPath>..\..\opensim-ssh\bin\OpenSim.Region.Framework.dll</HintPath>
     </Reference>
