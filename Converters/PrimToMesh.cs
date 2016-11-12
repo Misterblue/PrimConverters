@@ -54,12 +54,21 @@ namespace org.herbal3d.tools.Converters
             try {
                 if (prim.Sculpt != null) {
                     if (prim.Sculpt.Type == OMV.SculptType.Mesh) {
-                        mesh = MeshFromPrimMeshData(prim, assetFetcher, lod);
-                        prom.Resolve(mesh);
+                        MeshFromPrimMeshData(prim, assetFetcher, lod)
+                            .Then(fm => {
+                                prom.Resolve(fm);
+                            })
+                            .Rejected(e => {
+                                prom.Reject(e);
+                            });
                     }
                     else {
-                        mesh = MeshFromPrimSculptData(prim, assetFetcher, lod);
-                        prom.Resolve(mesh);
+                        MeshFromPrimSculptData(prim, assetFetcher, lod)
+                            .Then(fm => {
+                                prom.Resolve(fm);
+                            })
+                            .Rejected(e => {
+                            });
                     }
                 }
                 else {
@@ -79,26 +88,27 @@ namespace org.herbal3d.tools.Converters
             return mesh;
         }
 
-        private OMVR.FacetedMesh MeshFromPrimSculptData(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {
-            OMVR.FacetedMesh ret = null;
+        private SimplePromise<OMVR.FacetedMesh> MeshFromPrimSculptData(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {
+            SimplePromise<OMVR.FacetedMesh> prom = new SimplePromise<OMVR.FacetedMesh>();
 
             // Get the asset that the sculpty is built on
             EntityHandle texHandle = new EntityHandle(prim.Sculpt.SculptTexture);
             assetFetcher.FetchTexture(texHandle)
                 .Then((bm) => {
-                    ret = m_mesher.GenerateFacetedSculptMesh(prim, bm.Image.ExportBitmap(), lod);
+                    prom.Resolve(m_mesher.GenerateFacetedSculptMesh(prim, bm.Image.ExportBitmap(), lod));
                 })
                 .Rejected((e) => {
                     m_log.Error("{0} MeshFromPrimSculptData: Rejected FetchTexture: {1}: {2}", m_logHeader, texHandle, e);
-                    ret = null;
-                    throw e;
+                    prom.Reject(e);
                 });
 
-            return ret;
+            return prom;
         }
 
-        private OMVR.FacetedMesh MeshFromPrimMeshData(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {
-            return null;
+        private SimplePromise<OMVR.FacetedMesh> MeshFromPrimMeshData(OMV.Primitive prim, IAssetFetcher assetFetcher, OMVR.DetailLevel lod) {
+            SimplePromise<OMVR.FacetedMesh> prom = new SimplePromise<OMVR.FacetedMesh>();
+
+            return prom;
         }
     }
 }

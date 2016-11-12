@@ -1,4 +1,4 @@
-﻿/* ==============================================================================
+/* ==============================================================================
 Copyright (c) 2016 Robert Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -35,6 +35,9 @@ using OMV = OpenMetaverse;
 using OMVA = OpenMetaverse.Assets;
 using OMVR = OpenMetaverse.Rendering;
 
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
+
 namespace org.herbal3d.tools.Converters {
     public class ExtendedPrim {
         public OMVA.PrimObject primObject;
@@ -46,6 +49,9 @@ namespace org.herbal3d.tools.Converters {
 
         static Logger m_log = Logger.Instance();
 
+        // This doesn't work on new OAR objects as the OAR file deserializer in
+        //    libopenmetavers is very old and fails to parse objects.
+        // See DoOnePrimToMesh below for an implementation using the OpenSim serializers
         public static void DoToMesh(Stream inFile, Stream outFile, string assetDir) {
             String xmlString;
 
@@ -107,8 +113,71 @@ namespace org.herbal3d.tools.Converters {
                 }
             }
             return prom;
-            
         }
+
+        // Fetch all the meshes for this SceneObjectGroup.
+        // The problem is that the different pieces may take different times to fetch (get the assets)
+        private static SimplePromise<List<ExtendedPrim>> CreateAllMeshesInSOP(SceneObjectGroup sog, PrimToMesh assetMesher, string assetDir) {
+            SimplePromise<List<ExtendedPrim>> prom = new SimplePromise<List<ExtendedPrim>>();
+
+            List<ExtendedPrim> meshes = new List<ExtendedPrim>();
+
+            using (IAssetFetcher assetFetcher = new OarFileAssets(assetDir)) {
+
+                // fetch the mesh for the root and the children
+                int totalChildren = sog.Parts.GetLength(0);
+                foreach (SceneObjectPart onePrimObject in sog.Parts) {
+                    m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}", onePrimObject.UUID);
+                    OMV.Primitive aPrim = onePrimObject.Shape;
+                    assetMesher.CreateMeshResource(aPrim, assetFetcher, OMVR.DetailLevel.Highest)
+                        .Then(facetedMesh => {
+                            lock (meshes) {
+                                m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}, primAsset={1}, fmesh={2}",
+                                                        onePrimObject.UUID, aPrim.ID, facetedMesh.Faces.Count);
+                                ExtendedPrim ePrim = new ExtendedPrim();
+                                ePrim.primitive = aPrim;
+                                ePrim.primObject = onePrimObject;
+                                ePrim.facetedMesh = facetedMesh;
+                                meshes.Add(ePrim);
+                            }
+                            if (--totalChildren <= 0) {
+                                prom.Resolve(meshes);
+                            }
+                        })
+                        .Rejected(e => {
+                            prom.Reject(e);
+                        });
+                }
+            }
+            return prom;
+        }
+        // This reads one serialized SceneObjectGroup using the OpenSim sserializer.
+        public static void OnePrimToMesh(Stream inFile, Stream outFile, string assetDir) {
+            String xmlString;
+
+            // Flag saying to merge linksets into a single mesh
+            bool shouldMerge = Globals.Params.ContainsKey("--merge");
+
+            using (StreamReader inn = new StreamReader(inFile, Encoding.UTF8)) {
+                xmlString = inn.ReadToEnd();
+            }
+
+            // Parse and convert the XML
+            SceneObjectGroup sog = SceneObjectSerializer.FromXml2Format(xmlString);
+
+            PrimToMesh assetMesher = new PrimToMesh();
+
+            // Convert the object definition into a mesh
+
+            CreateAllMeshesInSOP(sog, assetMesher, assetDir)
+                .Then(extendedAssetList => {
+                    
+                })
+                .Rejected(e => {
+                    m_log.Error("Failed mesh extraction: " + e);
+                });
+        }
+
 
         public static void DoToPNG(Stream inFile, Stream outFile) {
             // Read the input file into a byte array
@@ -116,8 +185,7 @@ namespace org.herbal3d.tools.Converters {
             inFile.CopyTo(ms);
 
             // Convert from JPEG2000 to an image
-            // System.Drawing.Image tempImage = CSJ2K.J2kImage.FromBytes(ms.ToArray());
-            System.Drawing.Image tempImage = CSJ2K.J2kImage.FromBytes(ms.ToArray());
+            Image tempImage = CSJ2K.J2kImage.FromBytes(ms.ToArray());
             try {
                 using (Bitmap textureBitmap = new Bitmap(tempImage.Width, tempImage.Height,
                             System.Drawing.Imaging.PixelFormat.Format32bppArgb)) {
@@ -129,7 +197,6 @@ namespace org.herbal3d.tools.Converters {
                     // Write out the converted image as PNG
                     textureBitmap.Save(outFile, System.Drawing.Imaging.ImageFormat.Png);
                     outFile.Flush();
-                    outFile.Close();
                 }
             }
             catch (Exception e) {

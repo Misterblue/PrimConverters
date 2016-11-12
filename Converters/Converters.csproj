@@ -31,16 +31,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CSJ2K">
-      <HintPath>..\..\libopenmetaverse\bin\CSJ2K.dll</HintPath>
+      <HintPath>..\..\opensim-ssh\bin\CSJ2K.dll</HintPath>
     </Reference>
     <Reference Include="OpenMetaverse">
-      <HintPath>..\..\libopenmetaverse\bin\OpenMetaverse.dll</HintPath>
+      <HintPath>..\..\opensim-ssh\bin\OpenMetaverse.dll</HintPath>
     </Reference>
     <Reference Include="OpenMetaverse.Rendering.Meshmerizer">
-      <HintPath>..\..\libopenmetaverse\bin\OpenMetaverse.Rendering.Meshmerizer.dll</HintPath>
+      <HintPath>..\..\opensim-ssh\bin\OpenMetaverse.Rendering.Meshmerizer.dll</HintPath>
     </Reference>
     <Reference Include="OpenMetaverseTypes">
-      <HintPath>..\..\libopenmetaverse\bin\OpenMetaverseTypes.dll</HintPath>
+      <HintPath>..\..\opensim-ssh\bin\OpenMetaverseTypes.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenSim.Region.Framework">
+      <HintPath>..\..\opensim-ssh\bin\OpenSim.Region.Framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
