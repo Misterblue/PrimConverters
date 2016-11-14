@@ -54,6 +54,7 @@ namespace org.herbal3d.tools.Converters
             try {
                 if (prim.Sculpt != null) {
                     if (prim.Sculpt.Type == OMV.SculptType.Mesh) {
+                        m_log.Debug("CreateMeshResource: creating mesh");
                         MeshFromPrimMeshData(prim, assetFetcher, lod)
                             .Then(fm => {
                                 prom.Resolve(fm);
@@ -63,15 +64,18 @@ namespace org.herbal3d.tools.Converters
                             });
                     }
                     else {
+                        m_log.Debug("CreateMeshResource: creating sculpty");
                         MeshFromPrimSculptData(prim, assetFetcher, lod)
                             .Then(fm => {
                                 prom.Resolve(fm);
                             })
                             .Rejected(e => {
+                                prom.Reject(e);
                             });
                     }
                 }
                 else {
+                    m_log.Debug("CreateMeshResource: creating primshape");
                     mesh = MeshFromPrimShapeData(prim, lod);
                     prom.Resolve(mesh);
                 }

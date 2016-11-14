@@ -1,4 +1,4 @@
-﻿/* ==============================================================================
+/* ==============================================================================
 Copyright (c) 2016 Robert Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -43,14 +43,29 @@ namespace org.herbal3d.tools.SimplePromise
      *       or
      *    someDay.Reject(Exception e);
      */
-    public class SimplePromise<T>
-    {
-        private Action<T> resolver = null;
-        private Action<Exception> rejecter = null;
+    public class SimplePromise<T> {
+        private enum ResolutionState {
+            NoValueOrResolver,
+            HaveResolver,
+            HaveValue,
+            ResolutionComplete
+        };
+
+        private ResolutionState resolverState;
+        private Action<T> resolver;
+        private ResolutionState rejectorState;
+        private Action<Exception> rejecter;
+
+        // We either get the value or the resolver first.
+        private T resolveValue;
+        private Exception rejectValue;
 
         public SimplePromise() {
             resolver = null;
             rejecter = null;
+            resolverState = ResolutionState.NoValueOrResolver;
+            rejectorState = ResolutionState.NoValueOrResolver;
+
         }
 
         public SimplePromise(Action<T> resolve, Action<Exception> reject) {
@@ -60,25 +75,73 @@ namespace org.herbal3d.tools.SimplePromise
 
         // Called by the one doing the action to complete the promise
         public void Resolve(T val) {
-            if (resolver != null) {
-                resolver(val);
+            switch (resolverState) {
+                case ResolutionState.NoValueOrResolver:
+                    resolveValue = val;
+                    resolverState = ResolutionState.HaveValue;
+                    break;
+                case ResolutionState.HaveResolver:
+                    resolver(val);
+                    resolverState = ResolutionState.ResolutionComplete;
+                    break;
+                case ResolutionState.HaveValue:
+                case ResolutionState.ResolutionComplete:
+                    // NoOp since we should never get to this state
+                    break;
             }
         }
 
         // Called by the one doing the action to reject the promise
         public void Reject(Exception e) {
-            if (rejecter != null) {
-                rejecter(e);
+            switch (rejectorState) {
+                case ResolutionState.NoValueOrResolver:
+                    rejectValue = e;
+                    rejectorState = ResolutionState.HaveValue;
+                    break;
+                case ResolutionState.HaveResolver:
+                    rejecter(e);
+                    rejectorState = ResolutionState.ResolutionComplete;
+                    break;
+                case ResolutionState.HaveValue:
+                case ResolutionState.ResolutionComplete:
+                    // NoOp since we should never get to this state
+                    break;
             }
         }
 
         public SimplePromise<T> Then(Action<T> resolve) {
-            resolver = resolve;
+            switch (resolverState) {
+                case ResolutionState.NoValueOrResolver:
+                    resolver = resolve;
+                    resolverState = ResolutionState.HaveResolver;
+                    break;
+                case ResolutionState.HaveValue:
+                    resolve(resolveValue);
+                    resolverState = ResolutionState.ResolutionComplete;
+                    break;
+                case ResolutionState.HaveResolver:
+                case ResolutionState.ResolutionComplete:
+                    // NoOp since we should never get to this state
+                    break;
+            }
             return this;
         }
 
         public SimplePromise<T> Rejected(Action<Exception> reject) {
-            rejecter = reject;
+            switch (rejectorState) {
+                case ResolutionState.NoValueOrResolver:
+                    rejecter = reject;
+                    rejectorState = ResolutionState.HaveResolver;
+                    break;
+                case ResolutionState.HaveValue:
+                    reject(rejectValue);
+                    rejectorState = ResolutionState.ResolutionComplete;
+                    break;
+                case ResolutionState.HaveResolver:
+                case ResolutionState.ResolutionComplete:
+                    // NoOp since we should never get to this state
+                    break;
+            }
             return this;
         }
 

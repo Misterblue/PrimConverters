@@ -65,13 +65,14 @@ namespace org.herbal3d.tools.Converters {
             }
 
             // Parse and convert the XML
-            OMVA.AssetPrim primAsset = new OMVA.AssetPrim(xmlString);
+            // OMVA.AssetPrim sceneObject = new OMVA.AssetPrim(xmlString);
+            SceneObjectGroup sceneObject = SceneObjectSerializer.FromXml2Format(xmlString);
 
             PrimToMesh assetMesher = new PrimToMesh();
 
             // Convert the object definition into a mesh
 
-            CreateAllMeshesInSOP(primAsset, assetMesher, assetDir)
+            CreateAllMeshesInSOP(sceneObject, assetMesher, assetDir)
                 .Then(extendedAssetList => {
                     
                 })
