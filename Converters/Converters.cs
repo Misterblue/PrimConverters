@@ -40,19 +40,42 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace org.herbal3d.tools.Converters {
+    // An extended description of an entity that includes the original
+    //     prim description as well as the mesh.
     public class ExtendedPrim {
         public OMVA.PrimObject primObject;
         public OMV.Primitive primitive;
         public SceneObjectPart SOP;
         public OMVR.FacetedMesh facetedMesh;
+    };
+
+    // A prim mesh can be made up of many versions
+    public enum PrimGroupType {
+        physics,
+        lod1,   // this is default and what is built for a standard prim
+        lod2,
+        lod3,
+        lod4
+    };
+
+    // Some prims (like the mesh type) have multiple versions to make one entity
+    public class ExtendedPrimGroup: Dictionary<PrimGroupType, ExtendedPrim> {
+        public ExtendedPrimGroup() : base() {
+        }
     }
+
+    // some entities are made of multiple prims (linksets)
+    public class EntityGroup : List<ExtendedPrimGroup> {
+        public EntityGroup() : base() {
+        }
+    }
+
+    // A multi-segment object (linkset)
 
     public static class Converters {
 
         static Logger m_log = Logger.Instance();
 
-        // This doesn't work on new OAR objects as the OAR file deserializer in
-        //    libopenmetavers is very old and fails to parse objects.
         // See DoOnePrimToMesh below for an implementation using the OpenSim serializers
         public static void DoToMesh(Stream inFile, Stream outFile, string assetDir) {
             String xmlString;
@@ -60,20 +83,22 @@ namespace org.herbal3d.tools.Converters {
             // Flag saying to merge linksets into a single mesh
             bool shouldMerge = Globals.Params.ContainsKey("--merge");
 
+            if (Globals.Params.ContainsKey("--format")) {
+                
+            }
+
             using (StreamReader inn = new StreamReader(inFile, Encoding.UTF8)) {
                 xmlString = inn.ReadToEnd();
             }
 
             // Parse and convert the XML
+            // The OAR file deserializer in libopenmetavers is very old and fails to parse objects.
             // OMVA.AssetPrim sceneObject = new OMVA.AssetPrim(xmlString);
             SceneObjectGroup sceneObject = SceneObjectSerializer.FromXml2Format(xmlString);
 
-            PrimToMesh assetMesher = new PrimToMesh();
-
             // Convert the object definition into a mesh
-
-            CreateAllMeshesInSOP(sceneObject, assetMesher, assetDir)
-                .Then(extendedAssetList => {
+            CreateAllMeshesInSOP(sceneObject, assetDir)
+                .Then(entityGroup => {
                     
                 })
                 .Rejected(e => {
@@ -81,38 +106,37 @@ namespace org.herbal3d.tools.Converters {
                 });
         }
 
-        // Fetch all the meshes for this SceneObjectGroup.
+        // NOT USED because the libopenmetaverse routines are old and don't have everything in them.
         // The problem is that the different pieces may take different times to fetch (get the assets)
-        private static SimplePromise<List<ExtendedPrim>> CreateAllMeshesInSOP(OMVA.AssetPrim primAsset, PrimToMesh assetMesher, string assetDir) {
-            SimplePromise<List<ExtendedPrim>> prom = new SimplePromise<List<ExtendedPrim>>();
+        private static SimplePromise<EntityGroup> CreateAllMeshesInSOP(OMVA.AssetPrim primAsset, string assetDir) {
+            SimplePromise<EntityGroup> prom = new SimplePromise<EntityGroup>();
 
-            List<ExtendedPrim> meshes = new List<ExtendedPrim>();
+            EntityGroup meshes = new EntityGroup();
 
-            using (IAssetFetcher assetFetcher = new OarFileAssets(assetDir)) {
+            using (PrimToMesh assetMesher = new PrimToMesh()) {
 
-                // fetch the mesh for the root and the children
-                int totalChildren = primAsset.Children.Count;
-                foreach (OMVA.PrimObject onePrimObject in primAsset.Children) {
-                    m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}", onePrimObject.ID);
-                    OMV.Primitive aPrim = onePrimObject.ToPrimitive();
-                    assetMesher.CreateMeshResource(aPrim, assetFetcher, OMVR.DetailLevel.Highest)
-                        .Then(facetedMesh => {
-                            lock (meshes) {
-                                m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}, primAsset={1}, fmesh={2}",
-                                                        onePrimObject.ID, aPrim.ID, facetedMesh.Faces.Count);
-                                ExtendedPrim ePrim = new ExtendedPrim();
-                                ePrim.primitive = aPrim;
-                                ePrim.primObject = onePrimObject;
-                                ePrim.facetedMesh = facetedMesh;
-                                meshes.Add(ePrim);
-                            }
-                            if (--totalChildren <= 0) {
-                                prom.Resolve(meshes);
-                            }
-                        })
-                        .Rejected(e => {
-                            prom.Reject(e);
-                        });
+                using (IAssetFetcher assetFetcher = new OarFileAssets(assetDir)) {
+
+                    // fetch the mesh for the root and the children
+                    int totalChildren = primAsset.Children.Count;
+                    foreach (OMVA.PrimObject onePrimObject in primAsset.Children) {
+                        m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}", onePrimObject.ID);
+                        OMV.Primitive aPrim = onePrimObject.ToPrimitive();
+                        assetMesher.CreateMeshResource(aPrim, assetFetcher, OMVR.DetailLevel.Highest)
+                            .Then(ePrimGroup => {
+                                lock (meshes) {
+                                    m_log.Debug("CreateAllMeshesInSOP: foreach onePrimObject: {0}, primAsset={1}",
+                                                onePrimObject.ID, aPrim.ID);
+                                    meshes.Add(ePrimGroup);
+                                }
+                                if (--totalChildren <= 0) {
+                                    prom.Resolve(meshes);
+                                }
+                            })
+                            .Rejected(e => {
+                                prom.Reject(e);
+                            });
+                    }
                 }
             }
             return prom;
@@ -120,69 +144,42 @@ namespace org.herbal3d.tools.Converters {
 
         // Fetch all the meshes for this SceneObjectGroup.
         // The problem is that the different pieces may take different times to fetch (get the assets)
-        private static SimplePromise<List<ExtendedPrim>> CreateAllMeshesInSOP(SceneObjectGroup sog, PrimToMesh assetMesher, string assetDir) {
-            SimplePromise<List<ExtendedPrim>> prom = new SimplePromise<List<ExtendedPrim>>();
+        private static SimplePromise<EntityGroup> CreateAllMeshesInSOP(SceneObjectGroup sog, string assetDir) {
+            SimplePromise<EntityGroup> prom = new SimplePromise<EntityGroup>();
 
-            List<ExtendedPrim> meshes = new List<ExtendedPrim>();
+            EntityGroup meshes = new EntityGroup();
 
-            using (IAssetFetcher assetFetcher = new OarFileAssets(assetDir)) {
+            using (PrimToMesh assetMesher = new PrimToMesh()) {
 
-                // fetch the mesh for the root and the children
-                int totalChildren = sog.Parts.GetLength(0);
-                foreach (SceneObjectPart oneSOP in sog.Parts) {
-                    m_log.Debug("CreateAllMeshesInSOP: foreach oneSOP: {0}, parentID={1}, offsetPos={2}, relPos={3}",
-                                        oneSOP.UUID, oneSOP.ParentID, oneSOP.OffsetPosition, oneSOP.RelativePosition);
-                    OMV.Primitive aPrim = oneSOP.Shape.ToOmvPrimitive();
-                    assetMesher.CreateMeshResource(aPrim, assetFetcher, OMVR.DetailLevel.Highest)
-                        .Then(facetedMesh => {
-                            lock (meshes) {
-                                m_log.Debug("CreateAllMeshesInSOP: foreach oneSOP: {0}, primAsset={1}, fmesh={2}",
-                                                        oneSOP.UUID, aPrim.ID, facetedMesh.Faces.Count);
-                                ExtendedPrim ePrim = new ExtendedPrim();
-                                ePrim.primitive = aPrim;
-                                ePrim.SOP = oneSOP;
-                                ePrim.facetedMesh = facetedMesh;
-                                meshes.Add(ePrim);
-                            }
-                            if (--totalChildren <= 0) {
-                                prom.Resolve(meshes);
-                            }
-                        })
-                        .Rejected(e => {
-                            prom.Reject(e);
-                        });
+                using (IAssetFetcher assetFetcher = new OarFileAssets(assetDir)) {
+
+                    // fetch the mesh for the root and the children
+                    int totalChildren = sog.Parts.GetLength(0);
+                    foreach (SceneObjectPart oneSOP in sog.Parts) {
+                        m_log.Debug("CreateAllMeshesInSOP: foreach oneSOP: {0}, parentID={1}, offsetPos={2}, relPos={3}",
+                                            oneSOP.UUID, oneSOP.ParentID, oneSOP.OffsetPosition, oneSOP.RelativePosition);
+                        OMV.Primitive aPrim = oneSOP.Shape.ToOmvPrimitive();
+                        assetMesher.CreateMeshResource(aPrim, assetFetcher, OMVR.DetailLevel.Highest)
+                            .Then(ePrimGroup => {
+                                lock (meshes) {
+                                    m_log.Debug("CreateAllMeshesInSOP: foreach oneSOP: {0}, primAsset={1}",
+                                                oneSOP.UUID, aPrim.ID);
+                                    meshes.Add(ePrimGroup);
+                                }
+                                if (--totalChildren <= 0) {
+                                    prom.Resolve(meshes);
+                                }
+                            })
+                            .Rejected(e => {
+                                prom.Reject(e);
+                            });
+                    }
                 }
             }
             return prom;
         }
-        // This reads one serialized SceneObjectGroup using the OpenSim sserializer.
-        public static void OnePrimToMesh(Stream inFile, Stream outFile, string assetDir) {
-            String xmlString;
 
-            // Flag saying to merge linksets into a single mesh
-            bool shouldMerge = Globals.Params.ContainsKey("--merge");
-
-            using (StreamReader inn = new StreamReader(inFile, Encoding.UTF8)) {
-                xmlString = inn.ReadToEnd();
-            }
-
-            // Parse and convert the XML
-            SceneObjectGroup sog = SceneObjectSerializer.FromXml2Format(xmlString);
-
-            PrimToMesh assetMesher = new PrimToMesh();
-
-            // Convert the object definition into a mesh
-
-            CreateAllMeshesInSOP(sog, assetMesher, assetDir)
-                .Then(extendedAssetList => {
-                    
-                })
-                .Rejected(e => {
-                    m_log.Error("Failed mesh extraction: " + e);
-                });
-        }
-
-
+        // ===============================================================================
         public static void DoToPNG(Stream inFile, Stream outFile) {
             // Read the input file into a byte array
             MemoryStream ms = new MemoryStream();

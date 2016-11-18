@@ -1,4 +1,4 @@
-﻿/* ==============================================================================
+/* ==============================================================================
 Copyright (c) 2016 Robert Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -43,9 +43,9 @@ namespace org.herbal3d.tools.AssetHandling {
             return prom;
         }
 
-        public override SimplePromise<OMV.Assets.AssetMesh> FetchMesh(EntityHandle handle) {
+        public override SimplePromise<byte[]> FetchRawAsset(EntityHandle handle) {
 
-            SimplePromise<OMV.Assets.AssetMesh> prom = new SimplePromise<OMV.Assets.AssetMesh>();
+            SimplePromise<byte[]> prom = new SimplePromise<byte[]>();
 
             return prom;
         }

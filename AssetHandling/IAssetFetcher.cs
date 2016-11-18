@@ -21,7 +21,7 @@ SOFTWARE.
 ================================================================================ */
 
 using System;
-using System.Drawing;
+using System.IO;
 using System.Collections.Generic;
 
 using OMV = OpenMetaverse;
@@ -33,7 +33,7 @@ namespace org.herbal3d.tools.AssetHandling
     public abstract class IAssetFetcher : IDisposable
     {
         public abstract SimplePromise<OMV.Assets.AssetTexture> FetchTexture(EntityHandle handle);
-        public abstract SimplePromise<OMV.Assets.AssetMesh> FetchMesh(EntityHandle handle);
+        public abstract SimplePromise<byte[]> FetchRawAsset(EntityHandle handle);
         public abstract void Dispose();
     }
 }

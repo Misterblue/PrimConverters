@@ -39,6 +39,10 @@
     <Reference Include="OpenMetaverse.Rendering.Meshmerizer">
       <HintPath>..\..\opensim-ssh\bin\OpenMetaverse.Rendering.Meshmerizer.dll</HintPath>
     </Reference>
+    <Reference Include="OpenMetaverse.StructuredData, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\opensim-ssh\bin\OpenMetaverse.StructuredData.dll</HintPath>
+    </Reference>
     <Reference Include="OpenMetaverseTypes">
       <HintPath>..\..\opensim-ssh\bin\OpenMetaverseTypes.dll</HintPath>
     </Reference>
@@ -60,7 +64,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Converters.cs" />
-    <Compile Include="PrimIO.cs" />
     <Compile Include="PrimToMesh.cs" />
     <Compile Include="PrimMesher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
