@@ -61,17 +61,15 @@ namespace org.herbal3d.tools.SimplePromise
         private Exception rejectValue;
 
         public SimplePromise() {
-            resolver = null;
-            rejecter = null;
             resolverState = ResolutionState.NoValueOrResolver;
             rejectorState = ResolutionState.NoValueOrResolver;
 
         }
 
-        public SimplePromise(Action<T> resolve, Action<Exception> reject) {
-            resolver = resolve;
-            rejecter = reject;
-        }
+        // public SimplePromise(Action<T> resolve, Action<Exception> reject) {
+        //     resolver = resolve;
+        //     rejecter = reject;
+        // }
 
         // Called by the one doing the action to complete the promise
         public void Resolve(T val) {
@@ -85,9 +83,9 @@ namespace org.herbal3d.tools.SimplePromise
                     resolverState = ResolutionState.ResolutionComplete;
                     break;
                 case ResolutionState.HaveValue:
+                    throw new Exception("SimplePromise.Resolve: double resolving of value");
                 case ResolutionState.ResolutionComplete:
-                    // NoOp since we should never get to this state
-                    break;
+                    throw new Exception("SimplePromise.Resolve: resolving of value after completion");
             }
         }
 
@@ -103,9 +101,9 @@ namespace org.herbal3d.tools.SimplePromise
                     rejectorState = ResolutionState.ResolutionComplete;
                     break;
                 case ResolutionState.HaveValue:
+                    throw new Exception("SimplePromise.Reject: double rejection");
                 case ResolutionState.ResolutionComplete:
-                    // NoOp since we should never get to this state
-                    break;
+                    throw new Exception("SimplePromise.Reject: rejection after completion");
             }
         }
 
@@ -120,9 +118,9 @@ namespace org.herbal3d.tools.SimplePromise
                     resolverState = ResolutionState.ResolutionComplete;
                     break;
                 case ResolutionState.HaveResolver:
+                    throw new Exception("SimplePromise.Then: double resolving");
                 case ResolutionState.ResolutionComplete:
-                    // NoOp since we should never get to this state
-                    break;
+                    throw new Exception("SimplePromise.Then: resolving after completion");
             }
             return this;
         }
@@ -138,9 +136,9 @@ namespace org.herbal3d.tools.SimplePromise
                     rejectorState = ResolutionState.ResolutionComplete;
                     break;
                 case ResolutionState.HaveResolver:
+                    throw new Exception("SimplePromise.Rejected: double rejection");
                 case ResolutionState.ResolutionComplete:
-                    // NoOp since we should never get to this state
-                    break;
+                    throw new Exception("SimplePromise.Then: rejecting after completion");
             }
             return this;
         }
