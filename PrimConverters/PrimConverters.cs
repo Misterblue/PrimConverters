@@ -44,6 +44,7 @@ namespace org.herbal3d.tools.PrimConverters {
             return @"Invocation:
 PrimConverters op opParameters
         where 'op' must be one of:
+            tomesh, topng
 ";
         }
 
